@@ -180,7 +180,7 @@ def add_task():
 
         # Adicionar a nova tarefa ao arquivo lista.py
         with open('lista.py', 'a') as file:
-            file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{new_task['name']}', 'time': '{new_task['time']}', 'path': '{new_task['path']}', 'status': 'Pendente'}})")
+            file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{new_task['name']}', 'time': '{new_task['time']}', 'path': r'{new_task['path']}', 'status': 'Pendente'}})")
 
         return jsonify({"success": True, "task": new_task})
         
