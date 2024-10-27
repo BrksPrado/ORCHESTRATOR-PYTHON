@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+ 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sicredi - Python Orchestrator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='Icone.png') }}" type="image/png">
+</head>
+ 
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <h2>| Python Orchestrator</h2>
+    </header>
+   
+    <div class="containerexecucao">
+        <h6 class="execucaotext">Em execução:</h2>
+        <table id="executiontable" class="executiontable">
+            <thead>
+                <tr>
+                    <th class="headerexecution">NOME</th>
+                    <th class="headerexecution">INÍCIO</th>
+                    <th class="headerexecution">MÁQUINA</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+   
+    <div class="container">
+        <div class="search-container">
+            <h3>Todas automações Python:</h3>
+            <div class="search-filter-group">
+                <div class="search-wrapper">
+                    <input class="search" type="text" id="search" placeholder="Pesquisar..." oninput="filterTasks()">
+                    <img src="{{ url_for('static', filename='search.png') }}" class="search-icon" alt="Search Icon">
+                </div>
+                <button id="addTaskBtn" class="add-task-btn">+</button>
+                <div class="filter-container">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter" onchange="filterByStatus()">
+                        <option value="all">Todos</option>
+                        <option value="Erro">Erro</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Executando">Executando</option>
+                        <option value="Concluída">Concluída</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+ 
+        <table id="statusTable">
+            <thead>
+                <tr>
+                    <th>NOME</th>
+                    <th>STATUS</th>
+                    <th>HORÁRIO</th>
+                    <th>FINALIZAÇÃO</th>
+                    <th>AÇÕES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr data-task-id="{{ task.id }}">
+                    <td class="namecolumn">{{ task.name }}</td>
+                    <td class="status {{ 'status-concluido' if task.status == 'Concluída' else 'status-em-execucao' if task.status == 'Executando' else 'status-erro' if task.status == 'Erro' else 'status-pendente' }}">
+                        {{ task.status }}
+                    </td>
+                    <td>{{ task.time }}</td>
+                    <td class="completion-time"></td>
+                    <td class="cellbutton">
+                        <button title="Iníciar automação" class="iniciar" onclick="startTask('{{ task.name }}')">INÍCIAR</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+ 
+        <div id="pagination"></div>
+ 
+        <div id="addTaskModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Adicionar Nova Automação</h2>
+                <form id="addTaskForm">
+                    <div class="input-group">
+                        <input type="text" id="taskName" name="taskName" required>
+                        <label for="taskName">Nome da Automação</label>
+                    </div>
+                    <div id="nameError" class="error-message"></div>
+                   
+                    <div class="input-group">
+                        <input type="time" id="taskTime" name="taskTime" required>
+                        <label for="taskTime">Horário de Execução</label>
+                    </div>
+                    <div id="timeError" class="error-message"></div>
+                   
+                    <div class="input-group">
+                        <input type="text" id="taskPath" name="taskPath" required>
+                        <label for="taskPath">Caminho do Executável</label>
+                    </div>
+                   
+                    <button type="submit" class="btn">Adicionar Tarefa</button>
+                </form>
+            </div>
+        </div>
+ 
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </body>
+ 
+</html>

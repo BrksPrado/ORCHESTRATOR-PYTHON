@@ -1,0 +1,507 @@
+/*Importação para fonte padronizada*/
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
+ 
+body {            /*Estilização geral do Body*/
+    font-family: Arial, sans-serif;
+    background-color: #d3d3d3;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+ }
+ 
+ header {            /*Estilização do header da pagina*/
+    display: flex;
+    width: 100%;
+    background-color: #048e04;
+    padding: 20px;
+    align-items: left;
+    box-shadow: 0 4px 40px #3e3e3e;
+    font-style:  oblique 0deg;
+ }
+ 
+ th{           /*estilização do cabeçalho do datatable*/
+   color:#048e04;
+   font-style: normal;
+   background-color: #ececec;
+   text-align: center;
+   border-color: #bfbfbf;
+   padding: 8px;
+   border: 1px solid;
+   border-color: #a9a9a9;
+   font-size: 15px;
+ }
+ 
+ td {
+   border: 1px solid #d1d1d1;
+   padding: 8px;
+}
+ 
+ .logo {
+    width: 150px;
+   }
+ 
+ img{             /*Estilização da logo do sicredi*/
+   margin-left: 20px;
+   height: 80%;
+ }
+ 
+ .container {        /*Estilização do container do widgets*/
+   font-family: 'Exo 2', sans-serif;
+   background: #ffffff;
+   padding: 20px;
+   border-radius: 10px;
+   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.1);
+   width: 80%;
+   margin-top: 40px;
+   text-align: center;
+   font-weight: 700;
+   margin-left: 5px;
+ }
+ 
+ h3{
+   font-size: 35px;
+   margin-left: 5px;
+   color: #048e04;
+   margin: 0px;
+ }
+ 
+ .tasks {            /*Estilização dos valores da tabela*/
+    margin-bottom: 20px;
+ }
+ 
+ .task {
+    background: #e0e0e0;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+ }
+ 
+ button {            /*Estilização geral dos botões*/
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #cbcbcb;
+    color: #fff;
+    cursor: pointer;
+    color:#000000;
+ }
+ 
+ button:hover {         /*Estilização quando passa mouse encima do botão*/
+    background-color: #3d3d3d;
+    color:#cbcbcb;
+ }
+ 
+ table {             /*Estiização da tabela das automações*/
+   width: 100%;
+   border-collapse: separate;
+   border-spacing:0;
+   border-radius: 10px;
+   overflow:hidden;
+   table-layout: fixed;
+   box-shadow: 0 5px 10px #8f8f8f;
+   border: 0.5px solid #8c8c8c;
+}
+                                        /*Classificação dos status*/
+.status-concluido {
+      background-color: #7fc258;
+      color: white;  
+}
+ 
+.status-em-execucao {
+   background-color: #5aacd9;
+   color: white;
+}
+ 
+.status-pendente {
+   background-color: #e8e8e8;
+   table-layout: fixed;
+}
+ 
+.status-erro {
+   background-color:#cc4040;
+   color: white;
+}
+ 
+h2{                                 /*Estilização do texto do header*/
+   font-family: 'Exo 2', sans-serif;
+   font-style: normal;
+   color: #ffffff;
+   margin:0;
+   margin-left: 3px;
+   margin-top: 2px;
+   font-size: 28px;
+   display: inline-block; /* Necessário para aplicar transform */
+   transform: skewX(-6deg); /* Ajuste o valor conforme necessário */
+   font-weight: 1500;
+   font-stretch: expanded;
+}
+ 
+td button.iniciar{            /*Estilização especifica do botão iniicar*/
+   width: 100%;
+   height: 100%;
+   box-sizing:border-box;
+   font-weight: 700;
+   background-color: #ededed;
+   color: rgb(1, 1, 1);
+}
+ 
+td button.iniciar:hover{
+   color: white;
+   background-color: #434343;
+ 
+}
+ 
+.cellbutton{      
+   background-color:#ededed;
+}
+ 
+th:nth-child(1), td:nth-child(1) {        /*tamanho coluna nome */
+   width: 40%; /* Ajuste o valor conforme necessário */
+}
+ 
+.search-container {           /*Alinhador*/
+   display: flex;
+   justify-content: space-between; /* Espaça os itens igualmente */
+   align-items: center; /* Alinha os itens verticalmente no centro */
+   margin-bottom: 20px; /* Espaçamento inferior para separar da tabela */
+}
+ 
+.search-filter-group {
+   display: flex;
+   align-items: center; /* Alinha os itens verticalmente no centro */
+}
+ 
+.search {         /* Estilização campo de pesquisa */
+   width: 0px;
+   height: 38px;
+   border-radius: 15px;
+   border: 1px solid;
+   border-color: #686868;
+   box-shadow: 0 2px 5px #898989;
+   margin-top: 9px;
+   margin-right: 16px; /* Espaçamento entre o campo de pesquisa e o filtro */
+   padding-left: 35px;
+   margin-left: 4px;
+   transition: width 0.5s ease; /* Adiciona uma transição suave para a largura */
+}
+ 
+.search:hover,
+.search:focus {
+   width: 300px;
+}
+ 
+.search-wrapper {
+   position: relative;
+   display: flex;
+   align-items: center;
+}
+ 
+.search-icon {
+   position: absolute;
+   left: -5px;
+   top: 58%;
+   transform: translateY(-50%);
+   width: 15px; /* Ajuste o tamanho conforme necessário */
+   height: 15px; /* Ajuste o tamanho conforme necessário */
+}
+ 
+.filter-container {/*Estilização filtro de Status*/
+   margin-bottom: 10px;
+   border-radius: 10px;
+   border: 1px solid #048e04;
+}
+ 
+#pagination {
+   margin-top: 10px;
+   text-align: right;
+}
+ 
+.pagination-btn {       /*Estilização botões de paginação*/
+   margin: 0 5px;
+   padding: 5px 10px;
+   cursor: pointer;
+   box-shadow: 0 2px 4px #3d3d3d;
+   
+}
+ 
+.pagination-btn.active {
+   font-weight: 700;
+   background-color: #088b0c;
+   color: white;
+   box-shadow: 0 2px 4px #3d3d3d;
+   padding: 9px 14px;
+}
+ 
+.filter-container {
+   margin-bottom: 10px;
+   border-radius: 10px;
+   border: 0px solid;
+}
+ 
+#statusFilter {         /*Menu suspenso de filtro*/
+   padding: 5px;
+   font-size: 16px;
+   border-radius: 10px;
+   border: 0 solid;
+   box-shadow: 0 2px 4px #a3a3a3;
+   margin-top: 19px;
+   height: 35px;
+   border: 1px solid #484848;
+}
+ 
+#statusFilter option:checked {
+   background-color: #059d02; /* Cor de fundo para o item selecionado */
+   color: white;
+}
+ 
+.containerexecucao{
+   font-family: 'Exo 2', sans-serif;
+   background: #ffffff;
+   padding: 20px;
+   border-radius: 10px;
+   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.1);
+   width: 80%;
+   margin-top: 40px;
+   text-align: top;
+   font-weight: 700;
+   margin-left: 5px;
+   color: #000000;
+ }
+ 
+ h6{
+   font-size: 35px;
+   color: #059d02;
+   margin: 0;
+ 
+ }
+ 
+ .executiontable{
+   margin-top: 14px;
+   text-align: center;
+ }
+ 
+ .cellsexecution{
+   background-color: #048e04;
+   border: 0px solid;
+   color: white;
+ }
+ 
+ .headerexecution{
+   height: 2px;
+   font-size: 14px;
+   border: 0px;
+ }
+ 
+ .modal {
+   display: none;
+   position: fixed;
+   z-index: 1;
+   left: 0;
+   top: 0;
+   width: 100%;
+   height: 100%;
+   overflow: auto;
+   background-color: rgba(0,0,0,0.4);
+}
+ 
+.modal-content {
+   background-color: #fefefe;
+   margin: 15% auto;
+   padding: 20px;
+   border: 1px solid #888;
+   width: 80%;
+   max-width: 600px;
+   text-align: center;
+}
+ 
+.modal-content form {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+ 
+.modal-content input {
+   margin-bottom: 10px;
+   width: 80%;
+   padding: 5px;
+}
+ 
+.modal-content button {
+   margin-top: 10px;
+}
+ 
+.close {
+   color: #aaa;
+   float: right;
+   font-size: 28px;
+   font-weight: bold;
+}
+ 
+.close:hover,
+.close:focus {
+   color: black;
+   text-decoration: none;
+   cursor: pointer;
+}
+ 
+#addTaskBtn {
+   margin-bottom: 7px;
+   font-size: 24px;
+   padding: 5px 15px;
+}
+ 
+/* Estilo para o botão + */
+.add-task-btn {
+   background-color: #048e04;
+   color: white;
+   border: none;
+   border-radius: 20%;
+   width: 40px;
+   height: 40px;
+   font-size: 24px;
+   cursor: pointer;
+   transition: background-color 0.3s;
+   margin-top: 15px;
+   margin-right: 10px;
+}
+ 
+.add-task-btn:hover {
+   background-color: #036d03;
+}
+ 
+/* Estilos para o modal */
+.modal {
+   display: none;
+   position: fixed;
+   z-index: 1;
+   left: 0;
+   top: 0;
+   width: 100%;
+   height: 100%;
+   overflow: auto;
+   background-color: rgba(0,0,0,0.4);
+}
+ 
+.modal-content {
+   background-color: #fefefe;
+   margin: 15% auto;
+   padding: 20px;
+   border: 1px solid #888;
+   width: 80%;
+   max-width: 700px;
+   border-radius: 10px;
+}
+ 
+.modal-content h2 {
+   color: #048e04;
+   margin-bottom: 20px;
+}
+ 
+.close {
+   color: #aaa;
+   float: right;
+   font-size: 28px;
+   font-weight: bold;
+   cursor: pointer;
+}
+ 
+.close:hover,
+.close:focus {
+   color: #000;
+   text-decoration: none;
+}
+ 
+/* Estilos para os campos de entrada */
+.input-group {
+   position: relative;
+   margin-bottom: 20px;
+}
+ 
+.input-group input {
+   width: 100%;
+   padding: 10px;
+   border: 1px solid #ddd;
+   border-radius: 5px;
+   font-size: 16px;
+}
+ 
+.input-group label {
+   position: absolute;
+   top: 10px;
+   left: 10px;
+   transition: all 0.3s ease;
+   pointer-events: none;
+   color: #999;
+}
+ 
+.input-group input:focus + label,
+.input-group input:valid + label {
+   top: -20px;
+   left: 0;
+   font-size: 12px;
+   color: #048e04;
+}
+ 
+/* Estilo para o botão de submit */
+.btn {
+   background-color: #048e04;
+   color: white;
+   border: none;
+   padding: 10px 20px;
+   border-radius: 5px;
+   cursor: pointer;
+   font-size: 16px;
+   transition: background-color 0.3s;
+}
+ 
+.btn:hover {
+   background-color: #036d03;
+}
+ 
+.error-message {
+   color: red;
+   font-size: 0.9em;
+   margin-top: -2px; /* Valor negativo para aproximar da caixa acima */
+   margin-bottom: 2px;
+}
+ 
+.input-group {
+   margin-bottom: 1px; /* Reduz o espaço entre os grupos de input */
+}
+ 
+.input-group input {
+   width: 100%;
+   padding: 10px;
+   border: 1px solid #ddd;
+   border-radius: 5px;
+   font-size: 16px;
+   box-sizing: border-box;
+}
+ 
+.input-group input[type="time"] {
+   width: 100% !important;
+   height: 45px !important;
+   padding: 17px !important;
+   margin-right: 100px;
+}
+ 
+.input-group {
+   position: relative;
+   margin-bottom: 30px; /* Espaço entre grupos de input */
+}
+ 
+.error-message {
+   color: red;
+   font-size: 0.9em;
+   margin-top: -15px; /* Valor negativo para mover a mensagem para cima */
+   margin-bottom: 5px; /* Espaço entre a mensagem de erro e o próximo elemento */
+   display: none; /* Inicialmente oculto */
+}
+ 
+.input-group {
+   margin-bottom: 10px; /* Reduz o espaço entre os grupos de input */
+}
