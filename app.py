@@ -149,47 +149,49 @@ def task_status():
 
 @app.route('/add_task', methods=['POST'])
 def add_task():
-    global tasks
-    data = request.json
-    task_name = data.get('name')
-    task_time = data.get('time')
-    task_path = data.get('path')
-
-    print(f"Recebendo dados para adicionar tarefa: {data}")  # Log de depuração
-
-    if not task_name or not task_time or not task_path:
-        print("Erro: Todos os campos são obrigatórios")  # Log de depuração
-        return jsonify({"success": False, "message": "Todos os campos são obrigatórios"}), 400
-
-    # Verificar se já existe uma tarefa com o mesmo nome
-    for task in tasks:
-        if task['name'] == task_name:
-            print("Erro: Já existe uma tarefa com este nome")  # Log de depuração
-            return jsonify({"success": False, "message": "Já existe uma tarefa com este nome"}), 400
-
-    new_task = {
-        'id': len(tasks) + 1,
-        'name': task_name,
-        'time': task_time,
-        'path': task_path,
-        'status': 'Pendente'
-    }
-    tasks.append(new_task)
-
-    # Adicionar a nova tarefa ao arquivo lista.py
     try:
-        with open('lista.py', 'w') as file:
-            file.write("tasks = []\n")
-            file.write("tasks.append([\n")
-            for task in tasks:
-                file.write(f"    {task},\n")
-            file.write("])\n")
-        print(f"Tarefa adicionada com sucesso: {new_task}")  # Log de depuração
+        global tasks
+        data = request.json
+        print(f"Recebendo dados para adicionar tarefa: {data}")  # Log dos dados recebidos
+        
+        task_name = data.get('name')
+        task_time = data.get('time')
+        task_path = data.get('path')
+        
+        if not task_name or not task_time or not task_path:
+            return jsonify({"success": False, "message": "Todos os campos são obrigatórios"}), 400
+        
+        # Verificar se já existe uma tarefa com o mesmo nome ou horário
+        for task in tasks:
+            if task['name'] == task_name:
+                return jsonify({"success": False, "message": "Já existe uma tarefa com este nome"}), 400
+            if task['time'] == task_time:
+                return jsonify({"success": False, "message": "Já existe uma tarefa agendada para este horário"}), 400
+        
+        new_task = {
+            'id': len(tasks) + 1,
+            'name': task_name,
+            'time': task_time,
+            'path': task_path,
+            'status': 'Pendente'
+        }
+        
+        tasks.append(new_task)
+        print(f"Tarefa adicionada com sucesso: {new_task}")  # Log da tarefa adicionada
+        
+        # Adicionar a nova tarefa ao arquivo lista.py
+        try:
+            with open('lista.py', 'a') as file:
+                file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{task_name}', 'time': '{task_time}', 'path': '{task_path}', 'status': 'Pendente'}})")
+        except Exception as e:
+            print(f"Erro ao salvar no arquivo: {str(e)}")
+            return jsonify({"success": False, "message": "Erro ao salvar a tarefa"}), 500
+        
+        return jsonify({"success": True, "task": new_task})
+        
     except Exception as e:
-        print(f"Erro ao adicionar tarefa ao arquivo lista.py: {e}")  # Log de depuração
-        return jsonify({"success": False, "message": "Erro ao adicionar tarefa ao arquivo lista.py"}), 500
-
-    return jsonify({"success": True, "message": "Tarefa adicionada com sucesso"})
+        print(f"Erro ao adicionar tarefa: {str(e)}")  # Log de erro
+        return jsonify({"success": False, "message": f"Erro ao adicionar tarefa: {str(e)}"}), 500
 
 if __name__ == '__main__':
     threading.Thread(target=monitor_tasks).start()
