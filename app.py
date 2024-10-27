@@ -11,66 +11,60 @@ import os
 # Conexão com o MongoDB
 try:
     client = MongoClient('mongodb://localhost:27017/')
-    client.admin.command('ping')
+    db = client['SGDB']
+    collection = db['orchestrator']
     print("MongoDB connection successful!")
 except Exception as e:
-    print(f"MongoDB connection failed: {e}")
-
-db = client['SGDB']
-collection = db['orchestrator']
+    print(f"Error connecting to MongoDB: {e}")
 
 app = Flask(__name__)
 
 def execute_task(task_name):
     print(f"Executando tarefa: {task_name}")
     for task in tasks:
-        if task['name'] == task_name:
+        if isinstance(task, dict) and task.get('name') == task_name:
             try:
-                # Registra o horário de início
                 start_time = datetime.now()
                 task['status'] = 'Executando'
                 task['execution_start_time'] = start_time.strftime("%H:%M:%S")
-                task['original_time'] = task['time']  # Guarda o horário original
-                task['time'] = start_time.strftime("%H:%M:%S")  # Atualiza com horário atual
                 
-                executable_path = task['path']
+                executable_path = task.get('path', '')
                 if executable_path.endswith('.exe'):
-                    executable_path = executable_path[:-4]
-                
+                    executable_path = executable_path[:-4]  # Remove .exe
+
+                # Verifique se o arquivo existe
                 if not os.path.isfile(executable_path + '.exe'):
                     print(f"Arquivo não encontrado: {executable_path}.exe")
                     task['status'] = 'Erro: Arquivo não encontrado'
-                    end_time = datetime.now()
-                    save_to_mongodb(task, start_time, end_time, end_time - start_time)
                     return task
-                
+
                 # Executa o arquivo
                 process = subprocess.run([executable_path + '.exe'],
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
                                       check=True)
-                
-                # Registra o horário de término
-                end_time = datetime.now()
                 task['status'] = 'Concluída'
-                task['completion_time'] = end_time.strftime("%H:%M:%S")
-                
-                # Salva no MongoDB
-                save_to_mongodb(task, start_time, end_time, end_time - start_time)
                 print(process.stdout.decode())
 
+                # Salva no MongoDB após execução bem-sucedida
+                end_time = datetime.now()
+                execution_time = end_time - start_time
+                save_to_mongodb(task, start_time, end_time, execution_time)
+
             except subprocess.CalledProcessError as e:
-                end_time = datetime.now()
                 task['status'] = 'Erro'
-                task['completion_time'] = end_time.strftime("%H:%M:%S")
-                save_to_mongodb(task, start_time, end_time, end_time - start_time)
                 print(f"Erro na execução: {e.stderr.decode()}")
-            except Exception as e:
+                # Salva no MongoDB mesmo em caso de erro
                 end_time = datetime.now()
+                execution_time = end_time - start_time
+                save_to_mongodb(task, start_time, end_time, execution_time)
+            except Exception as e:
                 task['status'] = 'Erro'
-                task['completion_time'] = end_time.strftime("%H:%M:%S")
-                save_to_mongodb(task, start_time, end_time, end_time - start_time)
                 print(f"Erro inesperado: {str(e)}")
+                # Salva no MongoDB mesmo em caso de erro
+                end_time = datetime.now()
+                execution_time = end_time - start_time
+                save_to_mongodb(task, start_time, end_time, execution_time)
             break
     return task
 
@@ -80,36 +74,37 @@ def save_to_mongodb(task, start_time, end_time, execution_time):
             'id_automacao': task['id'],
             'nome_automacao': task['name'],
             'status_final': task['status'],
-            'horario_inicio_execucao': start_time.strftime("%H:%M:%S"),
+            'horario_inicio_execucao': task['execution_start_time'],
             'horario_agendado': task.get('original_time', task['time']),
             'caminho_arquivo': task.get('path', ''),
             'horario_inicio': start_time.strftime("%d/%m/%Y -- %H:%M:%S"),
-            'horario_fim': end_time.strftime("%d/%m/%Y -- %H:%M:%S"),
-            'tempo_execucao': str(execution_time),
-            'completion_time': task.get('completion_time', '')
+            'horario_fim': end_time.strftime("%d/%m/%Y -- %H:%M:%S")
         }
+
+        hours, remainder = divmod(execution_time.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        document['tempo_de_execucao'] = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
         if task['status'] == 'Erro':
             document['erro'] = "Erro na execução da tarefa"
 
-        # Verifica a conexão com o MongoDB antes de inserir
-        try:
-            client.admin.command('ping')
-            collection.insert_one(document)
-            print(f"Task '{task['name']}' saved to MongoDB successfully.")
-        except Exception as mongo_error:
-            print(f"MongoDB connection error: {mongo_error}")
-            
+        collection.insert_one(document)
+        print(f"Task '{task['name']}' saved to MongoDB.")
     except Exception as e:
         print(f"Error saving task to MongoDB: {e}")
 
 def monitor_tasks():
     while True:
-        current_time = datetime.now().strftime("%H:%M")
-        for task in tasks:
-            if task['time'] == current_time and task['status'] == 'Pendente':
-                execute_task(task['name'])
-        time.sleep(60)
+        try:
+            current_time = datetime.now().strftime("%H:%M")
+            for task in tasks:
+                if isinstance(task, dict):  # Verifica se task é um dicionário
+                    if task.get('time') == current_time and task.get('status') == 'Pendente':
+                        execute_task(task.get('name'))
+            time.sleep(60)
+        except Exception as e:
+            print(f"Error in monitor_tasks: {str(e)}")
+            time.sleep(60)
 
 @app.route('/')
 def index():
@@ -117,57 +112,63 @@ def index():
 
 @app.route('/start_task', methods=['POST'])
 def start_task():
-    data = request.json
-    task_name = data.get('task_name')
-    if not task_name:
-        return jsonify({"error": "task_name is required"}), 400
-    
-    task = execute_task(task_name)
-    return jsonify({"task": task})
+    try:
+        data = request.json
+        task_name = data.get('task_name')
+        if not task_name:
+            return jsonify({"error": "task_name is required"}), 400
+        
+        task = execute_task(task_name)
+        return jsonify({"task": task})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/task_status', methods=['GET'])
 def task_status():
-    current_tasks = []
-    for task in tasks:
-        task_copy = task.copy()
-        latest_status = collection.find_one(
-            {'id_automacao': task['id']}, 
-            sort=[('horario_fim', -1)]
-        )
-        
-        if latest_status:
-            task_copy['status'] = latest_status['status_final']
-            if task_copy['status'] == 'Executando':
-                task_copy['time'] = latest_status['horario_inicio_execucao']
-            else:
-                task_copy['time'] = task.get('time')
-                task_copy['completion_time'] = latest_status.get('completion_time', '')
-        
-        current_tasks.append(task_copy)
-    
-    return jsonify(current_tasks)
+    try:
+        for task in tasks:
+            if isinstance(task, dict):  # Verifica se task é um dicionário
+                latest_status = collection.find_one(
+                    {'id_automacao': task.get('id')}, 
+                    sort=[('horario_fim', -1)]
+                )
+                if latest_status:
+                    task['status'] = latest_status['status_final']
+                    if task['status'] == 'Executando':
+                        task['time'] = task.get('execution_start_time', task['time'])
+                    else:
+                        horario_fim = latest_status.get('horario_fim', '')
+                        if horario_fim:
+                            task['completion_time'] = horario_fim.split('--')[-1].strip()
+                        else:
+                            task['completion_time'] = ''
+        return jsonify(tasks)
+    except Exception as e:
+        print(f"Error in task_status: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/add_task', methods=['POST'])
 def add_task():
     try:
-        global tasks
         data = request.json
-        print(f"Recebendo dados para adicionar tarefa: {data}")  # Log dos dados recebidos
-        
         task_name = data.get('name')
         task_time = data.get('time')
         task_path = data.get('path')
         
         if not task_name or not task_time or not task_path:
             return jsonify({"success": False, "message": "Todos os campos são obrigatórios"}), 400
-        
+
+        # Remove a extensão .exe do caminho
+        if task_path.endswith('.exe'):
+            task_path = task_path[:-4]
+
         # Verificar se já existe uma tarefa com o mesmo nome ou horário
         for task in tasks:
-            if task['name'] == task_name:
+            if task.get('name') == task_name:
                 return jsonify({"success": False, "message": "Já existe uma tarefa com este nome"}), 400
-            if task['time'] == task_time:
+            if task.get('time') == task_time:
                 return jsonify({"success": False, "message": "Já existe uma tarefa agendada para este horário"}), 400
-        
+
         new_task = {
             'id': len(tasks) + 1,
             'name': task_name,
@@ -175,22 +176,16 @@ def add_task():
             'path': task_path,
             'status': 'Pendente'
         }
-        
         tasks.append(new_task)
-        print(f"Tarefa adicionada com sucesso: {new_task}")  # Log da tarefa adicionada
-        
+
         # Adicionar a nova tarefa ao arquivo lista.py
-        try:
-            with open('lista.py', 'a') as file:
-                file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{task_name}', 'time': '{task_time}', 'path': '{task_path}', 'status': 'Pendente'}})")
-        except Exception as e:
-            print(f"Erro ao salvar no arquivo: {str(e)}")
-            return jsonify({"success": False, "message": "Erro ao salvar a tarefa"}), 500
-        
+        with open('lista.py', 'a') as file:
+            file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{new_task['name']}', 'time': '{new_task['time']}', 'path': '{new_task['path']}', 'status': 'Pendente'}})")
+
         return jsonify({"success": True, "task": new_task})
         
     except Exception as e:
-        print(f"Erro ao adicionar tarefa: {str(e)}")  # Log de erro
+        print(f"Erro ao adicionar tarefa: {str(e)}")
         return jsonify({"success": False, "message": f"Erro ao adicionar tarefa: {str(e)}"}), 500
 
 if __name__ == '__main__':
