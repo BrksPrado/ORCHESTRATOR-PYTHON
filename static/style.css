@@ -500,6 +500,7 @@ th:nth-child(1), td:nth-child(1) {        /*tamanho coluna nome */
    margin-top: -15px; /* Valor negativo para mover a mensagem para cima */
    margin-bottom: 5px; /* Espaço entre a mensagem de erro e o próximo elemento */
    display: none; /* Inicialmente oculto */
+   text-align: left;
 }
  
 .input-group {

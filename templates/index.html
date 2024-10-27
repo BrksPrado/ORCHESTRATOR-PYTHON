@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
- 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='Icone.png') }}" type="image/png">
 </head>
- 
+
 <body>
     <header>
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
@@ -51,7 +51,7 @@
                 </div>
             </div>
         </div>
- 
+
         <table id="statusTable">
             <thead>
                 <tr>
@@ -78,9 +78,9 @@
                 {% endfor %}
             </tbody>
         </table>
- 
+
         <div id="pagination"></div>
- 
+
         <div id="addTaskModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -102,13 +102,14 @@
                         <input type="text" id="taskPath" name="taskPath" required>
                         <label for="taskPath">Caminho do Executável</label>
                     </div>
+                    <div id="pathError" class="error-message"></div>
                    
                     <button type="submit" class="btn">Adicionar Tarefa</button>
                 </form>
             </div>
         </div>
- 
+
         <script src="{{ url_for('static', filename='script.js') }}"></script>
     </body>
- 
+
 </html>

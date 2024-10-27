@@ -121,28 +121,45 @@ def add_task():
     task_name = data.get('name')
     task_time = data.get('time')
     task_path = data.get('path')
-   
-    if not task_name or not task_time or not task_path:
+    
+    if not all([task_name, task_time, task_path]):
         return jsonify({"success": False, "message": "Todos os campos são obrigatórios"}), 400
-   
-    # Remove a extensão .exe do caminho
-    if task_path.endswith('.exe'):
-        task_path = task_path[:-4]  # Remove .exe
- 
+    
+    # Validação do arquivo .exe
+    if not task_path.lower().endswith('.exe'):
+        return jsonify({"success": False, "message": "O caminho deve apontar para um arquivo .exe"}), 400
+    
+    # Verifica se o arquivo existe
+    if not os.path.isfile(task_path):
+        return jsonify({"success": False, "message": "Arquivo .exe não encontrado"}), 400
+
     # Verificar se já existe uma tarefa com o mesmo nome ou horário
     for task in tasks:
         if task['name'] == task_name:
             return jsonify({"success": False, "message": "Já existe uma tarefa com este nome"}), 400
         if task['time'] == task_time:
             return jsonify({"success": False, "message": "Já existe uma tarefa agendada para este horário"}), 400
- 
-    new_task = {'id': len(tasks) + 1, 'name': task_name, 'time': task_time, 'path': task_path, 'status': 'Pendente'}
+
+    new_task = {
+        'id': len(tasks) + 1,
+        'name': task_name,
+        'time': task_time,
+        'path': task_path,
+        'status': 'Pendente'
+    }
     tasks.append(new_task)
-   
+
     # Adicionar a nova tarefa ao arquivo lista.py
-    with open('lista.py', 'a') as file:
-        file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{new_task['name']}', 'time': '{new_task['time']}', 'path': '{new_task['path']}', 'status': 'Pendente'}})")
- 
+    try:
+        with open('lista.py', 'a') as file:
+            # Formatando o path com barras duplas para evitar problemas com caracteres especiais
+            formatted_path = task_path.replace('\\', '\\\\')
+            file.write(f"\ntasks.append({{'id': {new_task['id']}, 'name': '{new_task['name']}', "
+                      f"'time': '{new_task['time']}', 'path': '{formatted_path}', 'status': 'Pendente'}})")
+    except Exception as e:
+        print(f"Erro ao salvar no arquivo lista.py: {str(e)}")
+        return jsonify({"success": False, "message": "Erro ao salvar a tarefa no arquivo"}), 500
+
     return jsonify({"success": True, "task": new_task})
  
 if __name__ == '__main__':

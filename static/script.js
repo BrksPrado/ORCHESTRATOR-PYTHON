@@ -276,6 +276,19 @@ if (form) {
         var path = document.getElementById("taskPath").value.trim();
         var nameError = document.getElementById("nameError");
         var timeError = document.getElementById("timeError");
+        var pathError = document.getElementById("pathError"); // Adicione este elemento no HTML
+
+        // Limpa mensagens de erro
+        nameError.style.display = "none";
+        timeError.style.display = "none";
+        pathError.style.display = "none";
+
+        // Validação do arquivo .exe
+        if (!path.toLowerCase().endsWith('.exe')) {
+            pathError.textContent = "O caminho deve apontar para um arquivo .exe";
+            pathError.style.display = "block";
+            return;
+        }
  
         // Limpa mensagens de erro anteriores
         nameError.textContent = "";
