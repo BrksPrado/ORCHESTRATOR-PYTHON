@@ -69,6 +69,7 @@
                 <tr>
                     <th>NOME</th>
                     <th>STATUS</th>
+                    <th>TRIGGER</th>
                     <th>HORÁRIO</th>
                     <th>FINALIZAÇÃO</th>
                     <th>AÇÕES</th>
@@ -81,12 +82,19 @@
                     <td class="status {{ 'status-concluido' if task.status == 'Concluída' else 'status-em-execucao' if task.status == 'Executando' else 'status-erro' if task.status == 'Erro' else 'status-pendente' }}">
                         {{ task.status }}
                     </td>
-                    <td>{{ task.time }}</td>
+                    <td class="trigger-time">{{ task.time }}</td>
+                    <td class="execution-time"></td>
                     <td class="completion-time"></td>
                     <td class="cellbutton">
-                        <button title="Iniciar automação" class="iniciar" onclick="startTask('{{ task.name }}')">
-                            <i class="fas fa-play"></i>
-                        </button>
+                        {% if task.status == 'Executando' %}
+                            <button title="Parar automação" class="parar" onclick="stopTask('{{ task.name }}')">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        {% else %}
+                            <button title="Iniciar automação" class="iniciar" onclick="startTask('{{ task.name }}')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

@@ -17,34 +17,88 @@ function startTask(taskName) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log(data);
+        console.log('Resposta do servidor:', data);
         if (data.task) {
             const taskElement = document.querySelector(`tr[data-task-id="${data.task.id}"]`);
             if (taskElement) {
                 const statusCell = taskElement.querySelector('.status');
-                statusCell.textContent = 'Executando';
-                statusCell.className = `status status-em-execucao`;
+                statusCell.textContent = data.task.status;
+                statusCell.className = `status ${getStatusClass(data.task.status)}`;
+
+                const executionTimeCell = taskElement.querySelector('.execution-time');
+                executionTimeCell.textContent = data.task.execution_time || '';
+
+                const completionTimeCell = taskElement.querySelector('.completion-time');
+                completionTimeCell.textContent = data.task.completion_time || '';
+
+                const buttonCell = taskElement.querySelector('.cellbutton');
+                if (data.task.status === 'Executando') {
+                    buttonCell.innerHTML = `
+                        <button title="Parar automação" class="parar" onclick="stopTask('${data.task.name}')">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    `;
+                } else {
+                    buttonCell.innerHTML = `
+                        <button title="Iniciar automação" class="iniciar" onclick="startTask('${data.task.name}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    `;
+                }
             }
         }
     })
-    .catch(error => console.error('Erro:', error));
+    .catch(error => {
+        console.error('Erro ao iniciar tarefa:', error);
+    });
 }
 
 function updateTaskStatus(tasks) {
     tasks.forEach(task => {
         const taskElement = document.querySelector(`tr[data-task-id="${task.id}"]`);
         if (taskElement) {
+            // Não atualizar o status se a tarefa foi recém-adicionada
+            const isNewTask = taskElement.getAttribute('data-new-task') === 'true';
+            if (isNewTask) {
+                console.log('Pulando atualização de nova tarefa:', task.name);
+                return;
+            }
+
             const statusCell = taskElement.querySelector('.status');
-            console.log(`Atualizando status para ${task.name}: ${task.status}`);
+            const triggerCell = taskElement.querySelector('.trigger-time');
+            const executionTimeCell = taskElement.querySelector('.execution-time');
+            const completionTimeCell = taskElement.querySelector('.completion-time');
+            const buttonCell = taskElement.querySelector('.cellbutton');
+
+            // Atualiza o status apenas se não for uma nova tarefa
             statusCell.textContent = task.status;
             statusCell.className = `status ${getStatusClass(task.status)}`;
 
-            const timeCell = taskElement.querySelector('td:nth-child(3)');
-            timeCell.textContent = task.time;
+            // Atualiza o horário agendado
+            triggerCell.textContent = task.time;
 
-            const completionTimeCell = taskElement.querySelector('.completion-time');
-            if (completionTimeCell) {
+            // Atualiza os horários apenas se necessário
+            if (task.status === 'Executando' || task.status === 'Concluída') {
+                executionTimeCell.textContent = task.execution_time || '';
+            }
+
+            if (task.status === 'Concluída') {
                 completionTimeCell.textContent = task.completion_time || '';
+            }
+
+            // Atualiza o botão baseado no status
+            if (task.status === 'Executando') {
+                buttonCell.innerHTML = `
+                    <button title="Parar automação" class="parar" onclick="stopTask('${task.name}')">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                `;
+            } else {
+                buttonCell.innerHTML = `
+                    <button title="Iniciar automação" class="iniciar" onclick="startTask('${task.name}')">
+                        <i class="fas fa-play"></i>
+                    </button>
+                `;
             }
         }
     });
@@ -65,8 +119,8 @@ function orderbytable() {
     const rows = Array.from(table.querySelectorAll('tbody tr'));
 
     rows.sort((a, b) => {
-        const timeA = a.querySelector('td:nth-child(3)').textContent.trim();
-        const timeB = b.querySelector('td:nth-child(3)').textContent.trim();
+        const timeA = a.querySelector('.trigger-time').textContent.trim();
+        const timeB = b.querySelector('.trigger-time').textContent.trim();
         return timeA.localeCompare(timeB);
     });
 
@@ -88,39 +142,63 @@ function filterByStatus() {
             return;
         }
 
-        // Obtenha o status atual, removendo acentos e convertendo para minúsculas
         const currentStatus = statusCell.textContent.trim()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
         console.log('Status da linha:', currentStatus);
 
-        // Se o status selecionado for 'all', mostre todas as linhas
         if (selectedStatus === 'all') {
-            row.style.display = ''; // Mostra a linha
+            row.style.display = '';
             console.log('Mostrando todas as linhas');
         } else {
-            // Verifique se o status atual corresponde ao status selecionado
             if (currentStatus === selectedStatus.toLowerCase()) {
-                row.style.display = ''; // Mostra a linha
+                row.style.display = '';
                 console.log(`Mostrando linha com status ${currentStatus}`);
             } else {
-                row.style.display = 'none'; // Oculta a linha
+                row.style.display = 'none';
                 console.log(`Ocultando linha com status ${currentStatus}`);
             }
         }
     });
 }
 
-// Adiciona o event listener quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', function() {
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', filterByStatus);
-        console.log('Event listener adicionado ao filtro de status');
-    } else {
-        console.log('Elemento statusFilter não encontrado');
-    }
-});
+function stopTask(taskName) {
+    fetch('/stop_task', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ task_name: taskName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        if (data.task) {
+            const taskElement = document.querySelector(`tr[data-task-id="${data.task.id}"]`);
+            if (taskElement) {
+                const statusCell = taskElement.querySelector('.status');
+                statusCell.textContent = 'Pendente';
+                statusCell.className = 'status status-pendente';
+
+                // Limpa os horários
+                const executionTimeCell = taskElement.querySelector('.execution-time');
+                executionTimeCell.textContent = '';
+                
+                const completionTimeCell = taskElement.querySelector('.completion-time');
+                completionTimeCell.textContent = '';
+
+                // Atualiza o botão para iniciar
+                const buttonCell = taskElement.querySelector('.cellbutton');
+                buttonCell.innerHTML = `
+                    <button title="Iniciar automação" class="iniciar" onclick="startTask('${data.task.name}')">
+                        <i class="fas fa-play"></i>
+                    </button>
+                `;
+            }
+        }
+    })
+    .catch(error => console.error('Erro:', error));
+}
 
 // Função para atualizar a tabela de execução
 function updateExecutionTable() {
@@ -145,26 +223,177 @@ function updateExecutionTable() {
             descriptionCell.style.border = 'none';
 
             const startTimeCell = newRow.insertCell(1);
-            startTimeCell.textContent = row.querySelector('td:nth-child(3)').textContent;
+            startTimeCell.textContent = row. querySelector('.trigger-time').textContent;
             startTimeCell.style.border = 'none';
 
-            const machineCell = newRow.insertCell(2);
-            machineCell.textContent = '2KBOT';
-            machineCell.style.border = 'none';
+            const endTimeCell = newRow.insertCell(2);
+            endTimeCell.textContent = row.querySelector('.completion-time').textContent;
+            endTimeCell.style.border = 'none';
         }
     });
 
     if (!hasExecution) {
         const newRow = executionTable.insertRow();
-        const noExecutionCell = newRow.insertCell(0);
-        noExecutionCell.colSpan = 3;
-        noExecutionCell.textContent = 'Sem execução no momento !';
-        noExecutionCell.style.textAlign = 'center';
-        noExecutionCell.style.border = 'none';
-        noExecutionCell.style.color = '#ffffff';
-        noExecutionCell.style.backgroundColor = '#1d9c00';
+        newRow.style.backgroundColor = '#048e04';
+        newRow.style.color = '#ffffff';
+
+        const descriptionCell = newRow.insertCell(0);
+        descriptionCell.textContent = 'Nenhuma automação em execução';
+        descriptionCell.style.border = 'none';
+        descriptionCell.colSpan = 3;
     }
 }
+
+// Função para atualizar a tabela de histórico
+function updateHistoryTable() {
+    const statusTable = document.getElementById('statusTable');
+    const historyTable = document.getElementById('historytable').getElementsByTagName('tbody')[0];
+
+    historyTable.innerHTML = '';
+
+    Array.from(statusTable.getElementsByTagName('tbody')[0].rows).forEach(row => {
+        const statusCell = row.querySelector('.status');
+        if (statusCell && statusCell.textContent.includes('Concluída')) {
+            const newRow = historyTable.insertRow();
+
+            newRow.style.backgroundColor = '#048e04';
+            newRow.style.color = '#ffffff';
+
+            const descriptionCell = newRow.insertCell(0);
+            descriptionCell.textContent = row.querySelector('.namecolumn').textContent;
+            descriptionCell.style.border = 'none';
+
+            const startTimeCell = newRow.insertCell(1);
+            startTimeCell.textContent = row.querySelector('.trigger-time').textContent;
+            startTimeCell.style.border = 'none';
+
+            const endTimeCell = newRow.insertCell(2);
+            endTimeCell.textContent = row.querySelector('.completion-time').textContent;
+            endTimeCell.style.border = 'none';
+        }
+    });
+}
+
+// Função para atualizar a tabela de erros
+function updateErrorTable() {
+    const statusTable = document.getElementById('statusTable');
+    const errorTable = document.getElementById('errortable').getElementsByTagName('tbody')[0];
+
+    errorTable.innerHTML = '';
+
+    Array.from(statusTable.getElementsByTagName('tbody')[0].rows).forEach(row => {
+        const statusCell = row.querySelector('.status');
+        if (statusCell && statusCell.textContent.includes('Erro')) {
+            const newRow = errorTable.insertRow();
+
+            newRow.style.backgroundColor = '#048e04';
+            newRow.style.color = '#ffffff';
+
+            const descriptionCell = newRow.insertCell(0);
+            descriptionCell.textContent = row.querySelector('.namecolumn').textContent;
+            descriptionCell.style.border = 'none';
+
+            const startTimeCell = newRow.insertCell(1);
+            startTimeCell.textContent = row.querySelector('.trigger-time').textContent;
+            startTimeCell.style.border = 'none';
+
+            const endTimeCell = newRow.insertCell(2);
+            endTimeCell.textContent = row.querySelector('.completion-time').textContent;
+            endTimeCell.style.border = 'none';
+        }
+    });
+}
+
+// Função para atualizar a tabela de pendentes
+function updatePendingTable() {
+    const statusTable = document.getElementById('statusTable');
+    const pendingTable = document.getElementById('pendingtable').getElementsByTagName('tbody')[0];
+
+    pendingTable.innerHTML = '';
+
+    Array.from(statusTable.getElementsByTagName('tbody')[0].rows).forEach(row => {
+        const statusCell = row.querySelector('.status');
+        if (statusCell && statusCell.textContent.includes('Pendente')) {
+            const newRow = pendingTable.insertRow();
+
+            newRow.style.backgroundColor = '#048e04';
+            newRow.style.color = '#ffffff';
+
+            const descriptionCell = newRow.insertCell(0);
+            descriptionCell.textContent = row.querySelector('.namecolumn').textContent;
+            descriptionCell.style.border = 'none';
+
+            const startTimeCell = newRow.insertCell(1);
+            startTimeCell.textContent = row.querySelector('.trigger-time').textContent;
+            startTimeCell.style.border = 'none';
+
+            const endTimeCell = newRow.insertCell(2);
+            endTimeCell.textContent = row.querySelector('.completion-time').textContent;
+            endTimeCell.style.border = 'none';
+        }
+    });
+}
+
+// Função para atualizar a tabela de status
+function updateStatusTable() {
+    fetch('/get_tasks')
+        .then(response => response.json())
+        .then(data => {
+            const statusTable = document.getElementById('statusTable');
+            const tbody = statusTable.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            data.tasks.forEach(task => {
+                const newRow = tbody.insertRow();
+
+                const nameCell = newRow.insertCell(0);
+                nameCell.textContent = task.name;
+                nameCell.className = 'namecolumn';
+
+                const statusCell = newRow.insertCell(1);
+                statusCell.textContent = task.status;
+                statusCell.className = `status ${getStatusClass(task.status)}`;
+
+                const triggerCell = newRow.insertCell(2);
+                triggerCell.textContent = task.time;
+
+                const executionTimeCell = newRow.insertCell(3);
+                executionTimeCell.textContent = task.execution_time || '';
+
+                const completionTimeCell = newRow.insertCell(4);
+                completionTimeCell.textContent = task.completion_time || '';
+
+                const buttonCell = newRow .insertCell(5);
+                if (task.status === 'Executando') {
+                    buttonCell.innerHTML = `
+                        <button title="Parar automação" class="parar" onclick="stopTask('${task.name}')">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    `;
+                } else {
+                    buttonCell.innerHTML = `
+                        <button title="Iniciar automação" class="iniciar" onclick="startTask('${task.name}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    `;
+                }
+            });
+
+            orderbytable();
+            filterByStatus();
+            updateExecutionTable();
+            updateHistoryTable();
+            updateErrorTable();
+            updatePendingTable();
+        })
+        .catch(error => console.error('Erro:', error));
+}
+
+// Inicializa a tabela de status
+updateStatusTable();
+
+// Atualiza a tabela de status a cada 5 segundos
+setInterval(updateStatusTable, 5000);
 
 // Inicialização quando o DOM estiver carregado
 document.addEventListener('DOMContentLoaded', function() {
@@ -281,134 +510,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Configuração do formulário de adição de tarefas
-    const addTaskForm = document.getElementById("addTaskForm");
-    if (addTaskForm) {
-        const newForm = addTaskForm.cloneNode(true);
-        addTaskForm.parentNode.replaceChild(newForm, addTaskForm);
-
-        newForm.addEventListener("submit", function(e) {
-            e.preventDefault();
-            handleFormSubmit(e);
-        });
-    }
-
-    // Prevenir Ctrl+S
-    document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.key === 's') {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-    });
+// Configuração do formulário de adição de tarefas
+const addTaskForm = document.getElementById("addTaskForm");
+if (addTaskForm) {
+    addTaskForm.addEventListener("submit", handleFormSubmit);
+}
 });
 
-// Função auxiliar para lidar com o envio do formulário
-function handleFormSubmit(e) {
-    const name = document.getElementById("taskName").value.trim();
-    const time = document.getElementById("taskTime").value.trim();
-    const path = document.getElementById("taskPath").value.trim();
-    const nameError = document.getElementById("nameError");
-    const timeError = document.getElementById("timeError");
-    const pathError = document.getElementById("pathError");
-
-    // Limpar mensagens de erro
-    nameError.style.display = "none";
-    timeError.style.display = "none";
-    pathError.style.display = "none";
-
-    // Validações
-    if (!path.toLowerCase().endsWith('.exe')) {
-        pathError.textContent = "O caminho deve apontar para um arquivo .exe";
-        pathError.style.display = "block";
-        return;
-    }
-
-    // Verificar duplicatas
-    const nameExists = Array.from(document.querySelectorAll('#statusTable tbody tr td:first-child'))
-        .some(td => td.textContent.trim() === name);
-    const timeExists = Array.from(document.querySelectorAll('#statusTable tbody tr td:nth-child(3)'))
-        .some(td => td.textContent.trim() === time);
-
-    if (nameExists) {
-        nameError.textContent = "Já existe uma tarefa com este nome.";
-        nameError.style.display = "block";
-        return;
-    }
-
-    if (timeExists) {
-        timeError.textContent = "Já existe uma tarefa agendada para este horário.";
-        timeError.style.display = "block";
-        return;
-    }
-
-    // Enviar formulário
-    fetch('/add_task', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, time, path }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Tarefa adicionada com sucesso:', data.message);
-            addTaskToTable(data.task);
-            document.getElementById("addTaskModal").style.display = "none";
-            resetForm();
-        } else {
-            console.error('Erro ao adicionar tarefa:', data.message);
-            alert('Ocorreu um erro ao adicionar a tarefa: ' + data.message);
-        }
-    })
-    .catch((error) => {
-        console.error('Erro:', error);
-        alert('Ocorreu um erro inesperado.');
-    });
-}
-
-// Modal e Formulário
-var modal = document.getElementById("addTaskModal");
-var btn = document.getElementById("addTaskBtn");
-var span = document.getElementsByClassName("close")[0];
-
-// Função para limpar o formulário e remover alertas
-function resetForm() {
-    document.getElementById('addTaskForm').reset();
-    document.getElementById('nameError').textContent = '';
-    document.getElementById('timeError').textContent = '';
-    document.getElementById('pathError').textContent = '';
-    document.getElementById('nameError').style.display = 'none';
-    document.getElementById('timeError').style.display = 'none';
-    document.getElementById('pathError').style.display = 'none';
-}
-
-// Eventos do Modal
-btn.onclick = function() {
-    modal.style.display = "block";
-}
-
-span.onclick = function() {
-    modal.style.display = "none";
-    resetForm();
-}
-
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = "none";
-        resetForm();
-    }
-}
-
-// Formatação do campo de horário
-document.getElementById('taskTime').addEventListener('input', function(e) {
-    let value = e.target.value;
-    value = value.replace(/[^0-9:]/, '');
-    if (value.length > 5) value = value.substr(0, 5);
-    e.target.value = value;
-});
-
-// Paginação
+// Função para configurar a paginação
 function setupPagination() {
     const rowsPerPage = 20;
     const table = document.getElementById('statusTable');
@@ -416,14 +525,6 @@ function setupPagination() {
     const pagination = document.getElementById('pagination');
     let currentPage = 1;
     let filteredRows = rows;
-
-    function sortRowsByTime() {
-        filteredRows.sort((a, b) => {
-            const timeA = a.querySelector('td:nth-child(3)').textContent.trim();
-            const timeB = b.querySelector('td:nth-child(3)').textContent.trim();
-            return timeA.localeCompare(timeB);
-        });
-    }
 
     function displayRows() {
         const start = (currentPage - 1) * rowsPerPage;
@@ -441,6 +542,9 @@ function setupPagination() {
             const btn = document.createElement('button');
             btn.textContent = i;
             btn.classList.add('pagination-btn');
+            if (i === currentPage) {
+                btn.classList.add('active');
+            }
             btn.addEventListener('click', () => {
                 currentPage = i;
                 displayRows();
@@ -458,114 +562,115 @@ function setupPagination() {
     }
 
     // Inicialização da paginação
-    sortRowsByTime();
     displayRows();
     updatePagination();
-    updatePaginationButtons();
 }
 
-// Formulário de adição de tarefas
-const form = document.getElementById("addTaskForm");
-if (form) {
-    const newForm = form.cloneNode(true);
-    form.parentNode.replaceChild(newForm, form);
+// Função para lidar com o envio do formulário
+function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    clearErrorMessages();
+    
+    const taskName = document.getElementById('taskName').value;
+    const taskTime = document.getElementById('taskTime').value;
+    const taskPath = document.getElementById('taskPath').value;
+    
+    let isValid = true;
+    
+    if (!taskName) {
+        showError('nameError', 'Nome da automação é obrigatório');
+        isValid = false;
+    }
+    
+    if (!taskTime) {
+        showError('timeError', 'Horário é obrigatório');
+        isValid = false;
+    }
+    
+    if (!taskPath) {
+        showError('pathError', 'Caminho do executável é obrigatório');
+        isValid = false;
+    }
+    
+    if (!isValid) return;
 
-    newForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        var name = document.getElementById("taskName").value.trim();
-        var time = document.getElementById("taskTime").value.trim();
-        var path = document.getElementById("taskPath").value.trim();
-        var nameError = document.getElementById("nameError");
-        var timeError = document.getElementById("timeError");
-        var pathError = document.getElementById("pathError");
+    const formData = {
+        name: taskName,
+        time: taskTime,
+        path: taskPath
+    };
 
-        // Limpa mensagens de erro
-        nameError.style.display = "none";
-        timeError.style.display = "none";
-        pathError.style.display = "none";
+    fetch('/add_task', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = document.getElementById('addTaskModal');
+            modal.style.display = 'none';
+            resetForm();
+            
+            const tbody = document.querySelector('#statusTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.setAttribute('data-task-id', data.task.id);
+            newRow.setAttribute('data-new-task', 'true');  // Marca como nova tarefa
+            
+            newRow.innerHTML = `
+                <td class="namecolumn">${data.task.name}</td>
+                <td class="status status-pendente">Pendente</td>
+                <td class="trigger-time">${data.task.time}</td>
+                <td class="execution-time"></td>
+                <td class="completion-time"></td>
+                <td class="cellbutton">
+                    <button title="Iniciar automação" class="iniciar" onclick="startTask('${data.task.name}')">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(newRow);
+            orderbytable();
 
-        // Validação do arquivo .exe
-        if (!path.toLowerCase().endsWith('.exe')) {
-            pathError.textContent = "O caminho deve apontar para um arquivo .exe";
-            pathError.style.display = "block";
-            return;
+            // Remove o marcador de nova tarefa após alguns segundos
+            setTimeout(() => {
+                newRow.removeAttribute('data-new-task');
+            }, 5000);
+        } else {
+            showError('nameError', data.message);
         }
-
-        // Verifica se o nome já existe
-        var nameExists = Array.from(document.querySelectorAll('#statusTable tbody tr td:first-child'))
-            .some(td => td.textContent.trim() === name);
-
-        // Verifica se o horário já existe
-        var timeExists = Array.from(document.querySelectorAll('#statusTable tbody tr td:nth-child(3)'))
-            .some(td => td.textContent.trim() === time);
-
-        if (nameExists) {
-            nameError.textContent = "Já existe uma tarefa com este nome.";
-            nameError.style.display = "block";
-            return;
-        }
-
-        if (timeExists) {
-            timeError.textContent = "Já existe uma tarefa agendada para este horário.";
-            timeError.style.display = "block";
-            return;
-        }
-
-        // Envio do formulário
-        fetch('/add_task', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                time: time,
-                path: path
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Tarefa adicionada com sucesso:', data.message);
-                addTaskToTable(data.task);
-                modal.style.display = "none";
-                resetForm();
-            } else {
-                console.error('Erro ao adicionar tarefa:', data.message);
-                alert('Ocorreu um erro ao adicionar a tarefa: ' + data.message);
-            }
-        })
-        .catch((error) => {
-            console.error('Erro:', error);
-            alert('Ocorreu um erro inesperado.');
-        });
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showError('nameError', 'Erro ao adicionar tarefa');
     });
 }
 
-function addTaskToTable(task) {
-    const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
-    const newRow = table.insertRow();
-    newRow.setAttribute('data-task-id', task.id);
-
-    newRow.innerHTML = `
-        <td class="namecolumn">${task.name}</td>
-        <td class="status status-pendente">Pendente</td>
-        <td>${task.time}</td>
-        <td class="completion-time"></td>
-        <td class="cellbutton">
-            <button title="Iniciar automação" class="iniciar" onclick="startTask('${task.name}')">
-                <i class="fas fa-play"></i>
-            </button>
-        </td>
-    `;
-
-    orderbytable();
+// Função para limpar mensagens de erro
+function clearErrorMessages() {
+    const errorElements = document.querySelectorAll('.error-message');
+    errorElements.forEach(element => {
+        element.textContent = '';
+    });
 }
 
-// Prevenir Ctrl+S
-document.addEventListener('keydown', function(event) {
-    if (event.ctrlKey && event.key === 's') {
-        event.preventDefault();
-        event.stopPropagation();
+// Função para mostrar mensagem de erro
+function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = message;
     }
-});
+}
+
+// Função para resetar o formulário
+function resetForm() {
+    const form = document.getElementById('addTaskForm');
+    if (form) {
+        form.reset();
+        clearErrorMessages();
+    }
+}

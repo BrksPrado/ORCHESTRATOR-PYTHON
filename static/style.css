@@ -73,9 +73,10 @@ img {
 }
 
 .buttons-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+   display: flex;
+   align-items: center;
+   gap: 1px; /* Reduz o espaço entre os botões */
+   margin-left: auto; /* Empurra os botões para a direita */
 }
 
 h3 {
@@ -135,10 +136,11 @@ th:nth-child(1), td:nth-child(1) {
 }
 
 .cellbutton {
-   display: flex; /* Usar flexbox */
-   justify-content: center; /* Centraliza horizontalmente */
-   align-items: center; /* Centraliza verticalmente */
+   display: flex;
+   justify-content: center;
+   align-items: center;
    background-color: #ededed;
+   padding: 8px;
 }
 
 /* Botões Circulares */
@@ -169,10 +171,11 @@ th:nth-child(1), td:nth-child(1) {
 
 /* Campo de pesquisa */
 .search-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+   position: relative;
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   margin-right: 8px;
 }
 
 .search {
@@ -196,10 +199,11 @@ th:nth-child(1), td:nth-child(1) {
 
 /* Campo de Status */
 .status-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+   position: relative;
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   margin-left: 8px;
 }
 
 .status-select {
@@ -477,6 +481,73 @@ h6 {
 
 .circle-button:hover {
    background-color: #7fc258;
+   color: white;
+   transform: scale(0.9);
+}
+
+td button.parar {
+   width: 40px;
+   height: 40px;
+   box-sizing: border-box;
+   font-weight: 700;
+   background-color: #ededed;
+   color: rgb(1, 1, 1);
+   font-size: 15px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 50%;
+   border: none;
+   cursor: pointer;
+   transition: all 0.2s ease-in-out;
+   box-shadow: 0 2px 5px #898989;
+   padding: 0;
+}
+
+td button.parar:hover {
+   color: white;
+   background-color: #cc4040;
+   transform: scale(0.9);
+}
+
+.trigger-time, .execution-time, .completion-time {
+   text-align: center;
+}
+
+table th {
+   color: #048e04;
+   font-style: normal;
+   background-color: #ececec;
+   text-align: center;
+   border-color: #bfbfbf;
+   padding: 8px;
+   border: 1px solid;
+   border-color: #a9a9a9;
+   font-size: 15px;
+}
+
+td button.iniciar, td button.parar {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   border: none;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   margin: 0 auto;
+   background-color: #ededed;
+   box-shadow: 0 2px 5px #898989;
+}
+
+td button.iniciar:hover {
+   background-color: #7fc258;
+   color: white;
+   transform: scale(0.9);
+}
+
+td button.parar:hover {
+   background-color: #cc4040;
    color: white;
    transform: scale(0.9);
 }
