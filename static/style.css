@@ -203,34 +203,34 @@ th:nth-child(1), td:nth-child(1) {
 }
 
 .status-select {
-    width: 0;
-    height: 40px;
-    border-radius: 15px;
-    border: 1px solid #686868;
-    box-shadow: 0 2px 5px #898989;
-    padding-left: 15px;
-    font-size: 14px;
-    transition: width 0.3s ease-in-out;
-    opacity: 0;
-    visibility: hidden;
-    background-color: #ffffff;
+   width: 0;
+   height: 40px;
+   border-radius: 15px;
+   border: 1px solid #686868;
+   box-shadow: 0 2px 5px #898989;
+   padding-left: 15px;
+   font-size: 14px;
+   transition: all 0.3s ease-in-out;
+   opacity: 0;
+   visibility: hidden;
+   background-color: white;
 }
 
 .status-select.active {
-    width: 120px;
-    margin-right: 5px;
-    opacity: 1;
-    visibility: visible;
+   width: 120px;
+   margin-right: 5px;
+   opacity: 1;
+   visibility: visible;
 }
 
 .status-select option {
-    padding: 10px;
-    background-color: white;
+   padding: 10px;
+   background-color: white;
 }
 
 .status-select option:checked {
-    background-color: #7fc258;
-    color: white;
+   background-color: #7fc258;
+   color: white;
 }
 
 /* Container de Execução */
@@ -418,4 +418,65 @@ h6 {
 .search-button {
    cursor: pointer;
    z-index: 1;
+}
+
+/* Campo de pesquisa */
+.search {
+   width: 0;
+   height: 40px;
+   border-radius: 15px;
+   border: 1px solid #686868;
+   box-shadow: 0 2px 5px #898989;
+   padding-left: 15px;
+   font-size: 14px;
+   transition: all 0.3s ease-in-out;
+   opacity: 0;
+   visibility: hidden;
+}
+
+.search.active {
+   width: 250px;
+   opacity: 1;
+   visibility: visible;
+}
+
+/* Campo de Status */
+.status-select {
+   width: 0;
+   height: 40px;
+   border-radius: 15px;
+   border: 1px solid #686868;
+   box-shadow: 0 2px 5px #898989;
+   padding-left: 15px;
+   font-size: 14px;
+   transition: all 0.3s ease-in-out;
+   opacity: 0;
+   visibility: hidden;
+}
+
+.status-select.active {
+   width: 120px;
+   opacity: 1;
+   visibility: visible;
+}
+
+/* Botões */
+.circle-button {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   border: none;
+   cursor: pointer;
+   background-color: #ededed;
+   box-shadow: 0 2px 5px #898989;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   transition: all 0.2s ease-in-out;
+}
+
+.circle-button:hover {
+   background-color: #7fc258;
+   color: white;
+   transform: scale(0.9);
 }
