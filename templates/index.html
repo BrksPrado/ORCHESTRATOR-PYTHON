@@ -7,6 +7,7 @@
     <title>Sicredi - Python Orchestrator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='Icone.png') }}" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -16,7 +17,7 @@
     </header>
    
     <div class="containerexecucao">
-        <h6 class="execucaotext">Em execução:</h2>
+        <h6 class="execucaotext">Em execução:</h6>
         <table id="executiontable" class="executiontable">
             <thead>
                 <tr>
@@ -34,20 +35,31 @@
         <div class="search-container">
             <h3>Todas automações Python:</h3>
             <div class="search-filter-group">
-                <div class="search-wrapper">
-                    <input class="search" type="text" id="search" placeholder="Pesquisar..." oninput="filterTasks()">
-                    <img src="{{ url_for('static', filename='search.png') }}" class="search-icon" alt="Search Icon">
-                </div>
-                <button id="addTaskBtn" class="add-task-btn">+</button>
-                <div class="filter-container">
-                    <label for="statusFilter">Status:</label>
-                    <select id="statusFilter" onchange="filterByStatus()">
-                        <option value="all">Todos</option>
-                        <option value="Erro">Erro</option>
-                        <option value="Pendente">Pendente</option>
-                        <option value="Executando">Executando</option>
-                        <option value="Concluída">Concluída</option>
-                    </select>
+                <div class="buttons-wrapper">
+                    <!-- Campo de Pesquisa -->
+                    <div class="search-wrapper">
+                        <input class="search" type="text" id="search" placeholder="Pesquisar...">
+                        <button class="circle-button search-button" title="Pesquisar">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <!-- Botão Adicionar -->
+                    <button id="addTaskBtn" class="circle-button add-button" title="Adicionar automação">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <!-- Campo de Status -->
+                    <div class="status-wrapper">
+                        <select id="statusFilter" class="status-select" onchange="filterByStatus()">
+                            <option value="all">Status</option>
+                            <option value="Erro">Erro</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Executando">Executando</option>
+                            <option value="Concluída">Concluída</option>
+                        </select>
+                        <button class="circle-button status-button" title="Filtrar por status">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,7 +84,9 @@
                     <td>{{ task.time }}</td>
                     <td class="completion-time"></td>
                     <td class="cellbutton">
-                        <button title="Iníciar automação" class="iniciar" onclick="startTask('{{ task.name }}')">INÍCIAR</button>
+                        <button title="Iniciar automação" class="iniciar" onclick="startTask('{{ task.name }}')">
+                            <i class="fas fa-play"></i>
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -93,8 +107,9 @@
                     <div id="nameError" class="error-message"></div>
                    
                     <div class="input-group">
-                        <input type="time" id="taskTime" name="taskTime" required>
                         <label for="taskTime">Horário de Execução</label>
+                        <input type="time" id="taskTime" name="taskTime" required 
+                               placeholder="Selecione o horário">
                     </div>
                     <div id="timeError" class="error-message"></div>
                    
@@ -110,6 +125,6 @@
         </div>
 
         <script src="{{ url_for('static', filename='script.js') }}"></script>
+        </div>
     </body>
-
 </html>

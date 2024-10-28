@@ -74,7 +74,6 @@ def save_to_mongodb(task, start_time, end_time, execution_time):
             'id_automacao': task['id'],
             'nome_automacao': task['name'],
             'status_final': task['status'],
-            'horario_inicio_execucao': task['execution_start_time'],
             'horario_agendado': task.get('original_time', task['time']),
             'caminho_arquivo': task.get('path', ''),
             'horario_inicio': start_time.strftime("%d/%m/%Y -- %H:%M:%S"),

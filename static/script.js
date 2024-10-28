@@ -77,12 +77,8 @@ function filterTasks() {
     const rows = document.querySelectorAll('#statusTable tbody tr');
 
     rows.forEach(row => {
-        const taskName = row.querySelector('td').textContent.toLowerCase();
-        if (taskName.includes(searchInput)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        const taskName = row.querySelector('.namecolumn').textContent.toLowerCase();
+        row.style.display = taskName.includes(searchInput) ? '' : 'none';
     });
 }
 
@@ -360,7 +356,9 @@ if (form) {
             <td>${task.time}</td>
             <td class="completion-time"></td>
             <td class="cellbutton">
-                <button title="Iniciar automação" class="iniciar" onclick="startTask('${task.name}')">INICIAR</button>
+                <button title="Iniciar automação" class="iniciar" onclick="startTask('${task.name}')">
+                    <i class="fas fa-play"></i>
+                </button>
             </td>
         `;
     
@@ -369,3 +367,81 @@ if (form) {
     
     updateExecutionTable();
     setInterval(updateExecutionTable, 2000);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchButton = document.querySelector('.search-button');
+        const searchInput = document.querySelector('.search');
+        
+        // Toggle do campo de pesquisa
+        searchButton.addEventListener('click', function() {
+            searchInput.classList.toggle('active');
+            if (searchInput.classList.contains('active')) {
+                searchInput.focus();
+            }
+        });
+    
+        // Função de pesquisa
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#statusTable tbody tr');
+    
+            rows.forEach(row => {
+                const taskName = row.querySelector('.namecolumn').textContent.toLowerCase();
+                row.style.display = taskName.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    
+        // Fechar pesquisa quando clicar fora
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.search-wrapper')) {
+                searchInput.classList.remove('active');
+                searchInput.value = '';
+                // Resetar a visualização da tabela
+                const rows = document.querySelectorAll('#statusTable tbody tr');
+                rows.forEach(row => row.style.display = '');
+            }
+        });
+    });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchButton = document.querySelector('.search-button');
+    const searchInput = document.querySelector('.search');
+    
+    // Toggle do campo de pesquisa
+    searchButton.addEventListener('click', function() {
+        searchInput.classList.toggle('active');
+        if (searchInput.classList.contains('active')) {
+            searchInput.focus();
+        }
+    });
+
+    // Função de pesquisa
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#statusTable tbody tr');
+
+        rows.forEach(row => {
+            const taskName = row.querySelector('.namecolumn').textContent.toLowerCase();
+            row.style.display = taskName.includes(searchTerm) ? '' : 'none';
+        });
+    });
+
+    // Fechar pesquisa quando clicar fora
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.search-wrapper')) {
+            searchInput.classList.remove('active');
+            searchInput.value = '';
+            // Resetar a visualização da tabela
+            const rows = document.querySelectorAll('#statusTable tbody tr');
+            rows.forEach(row => row.style.display = '');
+        }
+    });
+});
+
+    // Formatação do campo de horário
+document.getElementById('taskTime').addEventListener('input', function(e) {
+    let value = e.target.value;
+    value = value.replace(/[^0-9:]/, '');
+    if (value.length > 5) value = value.substr(0, 5);
+    e.target.value = value;
+});
